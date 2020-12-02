@@ -1724,31 +1724,46 @@ contract('FRAX', async (accounts) => {
 		const uni_pool_post_reward_1 = new BigNumber(await pair_instance_FRAX_USDC.balanceOf.call(COLLATERAL_FRAX_AND_FXS_OWNER)).div(BIG18);
 		const fxs_post_reward_1 = new BigNumber(await fxsInstance.balanceOf.call(COLLATERAL_FRAX_AND_FXS_OWNER)).div(BIG18);
 		const rewards_balance_1_after = new BigNumber(await stakingInstance_FRAX_USDC.rewardsFor.call(COLLATERAL_FRAX_AND_FXS_OWNER)).div(BIG18);
-		console.log("accounts[0] LP token balance:", uni_pool_post_reward_1.toString());
-		console.log("accounts[0] FXS balance:", fxs_post_reward_1.toString());
-		console.log("accounts[0] staking rewardsFor():", rewards_balance_1_after.toString());
+		console.log("accounts[1] LP token balance:", uni_pool_post_reward_1.toString());
+		console.log("accounts[1] FXS balance:", fxs_post_reward_1.toString());
+		console.log("accounts[1] staking rewardsFor():", rewards_balance_1_after.toString());
 
 		console.log("====================================================================");
-		//console.log("accounts[0] withdraws");
+		//console.log("accounts[1] withdraws");
 		console.log("");
 		//await stakingInstance_FRAX_USDC.withdraw(uni_pool_tokens_1, { from: COLLATERAL_FRAX_AND_FXS_OWNER });
 		await time.advanceBlock();
 		const uni_pool_balance_1 = new BigNumber(await pair_instance_FRAX_USDC.balanceOf.call(COLLATERAL_FRAX_AND_FXS_OWNER)).div(BIG18);
 		const staking_fxs_ew_earned_1 = new BigNumber(await stakingInstance_FRAX_USDC.earned.call(COLLATERAL_FRAX_AND_FXS_OWNER)).div(BIG18);
-		console.log("accounts[0] LP token balance:", uni_pool_balance_1.toString());
-		console.log("accounts[0] staking earned():", staking_fxs_ew_earned_1.toString());
+		console.log("accounts[1] LP token balance:", uni_pool_balance_1.toString());
+		console.log("accounts[1] staking earned():", staking_fxs_ew_earned_1.toString());
 		console.log("");
 
 		const staking_fxs_ew_contract_bal_1 = new BigNumber(await stakingInstance_FRAX_USDC.rewardsFor.call(COLLATERAL_FRAX_AND_FXS_OWNER)).div(BIG18);
-		console.log("staking pool rewardsFor(accounts[0]):", staking_fxs_ew_contract_bal_1.toString());
+		console.log("staking pool rewardsFor(accounts[1]):", staking_fxs_ew_contract_bal_1.toString());
 
-		console.log("accounts[0] claims getReward()");
+		const votes_before_withdraw_0 = new BigNumber(await fxsInstance.getCurrentVotes(accounts[1])).div(BIG18);
+		console.log("accounts[1] claims getReward()");
 		await stakingInstance_FRAX_USDC.getReward({ from: COLLATERAL_FRAX_AND_FXS_OWNER });
 		await time.advanceBlock();
 		console.log("");
 
+		const votes_after_withdraw_0 = new BigNumber(await fxsInstance.getCurrentVotes(accounts[1])).div(BIG18);
 		const fxs_after_withdraw_0 = (new BigNumber(await fxsInstance.balanceOf(COLLATERAL_FRAX_AND_FXS_OWNER))).div(BIG18);
-		console.log("accounts[0] FXS balance change:", (fxs_after_withdraw_0).minus(fxs_1st_stake_1).toNumber());
+
+		console.log("accounts[1] FXS balance change:", (fxs_after_withdraw_0).minus(fxs_1st_stake_1).toNumber());
+		console.log("accounts[1] vote balance change:", (votes_after_withdraw_0).minus(votes_before_withdraw_0).toNumber());
+		
+		console.log("accounts[1] tries to mint with all of its FXS, should fail with staking FXS.safeTransfer() not transferring votes bug");
+		
+		console.log("accounts[1] vote balance:", new BigNumber(await fxsInstance.getCurrentVotes(accounts[1])).div(BIG18).toNumber());
+		await pool_instance_USDC.setPoolParameters(new BigNumber("100000000e18"), 7500, 1, { from: POOL_CREATOR });
+
+		const fxs_minting_0 = (new BigNumber(await fxsInstance.balanceOf(COLLATERAL_FRAX_AND_FXS_OWNER)));
+		console.log("accounts[1] FXS balance:", fxs_minting_0.div(BIG18).toNumber());
+		await fxsInstance.approve(pool_instance_USDC.address, fxs_minting_0, { from: COLLATERAL_FRAX_AND_FXS_OWNER });
+		await pool_instance_USDC.mintAlgorithmicFRAX(fxs_minting_0, 0, { from: COLLATERAL_FRAX_AND_FXS_OWNER });
+
 		console.log("====================================================================");
 
 		console.log("wait two weeks so accounts[9] can earn more");
