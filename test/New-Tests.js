@@ -442,7 +442,52 @@ contract('FRAX', async (accounts) => {
 		col_rat = collateral_ratio_refreshed;
 	});
 
+	it("checks that the FXS staking pairs are not giving out rewards before initializeDefault() is called", async () => {
+		console.log("========================FXS Delayed Launch========================");
+		console.log("accounts[1] FXS-ETH LP token balance:", new BigNumber(await pair_instance_FXS_WETH.balanceOf(COLLATERAL_FRAX_AND_FXS_OWNER)).div(BIG18).toNumber());
+		await pair_instance_FXS_WETH.approve(stakingInstance_FXS_WETH.address, new BigNumber("10e18"), { from: COLLATERAL_FRAX_AND_FXS_OWNER });
+		await stakingInstance_FXS_WETH.stake(new BigNumber("10e18"), { from: COLLATERAL_FRAX_AND_FXS_OWNER });
 
+		console.log("accounts[1] earned():", new BigNumber(await stakingInstance_FXS_WETH.earned(COLLATERAL_FRAX_AND_FXS_OWNER)).div(BIG18).toNumber());
+		console.log("FXS-ETH rewardPerToken():", new BigNumber(await stakingInstance_FXS_WETH.rewardPerToken()).div(BIG18).toNumber());
+		console.log("FXS-ETH getRewardForDuration():", new BigNumber(await stakingInstance_FXS_WETH.getRewardForDuration()).div(BIG18).toNumber());
+		console.log("FXS-ETH lastTimeRewardApplicable():", new BigNumber (await stakingInstance_FXS_WETH.lastTimeRewardApplicable()).toNumber());
+		console.log("FXS-ETH totalBoostedSupply():", new BigNumber(await stakingInstance_FXS_WETH.totalBoostedSupply()).div(BIG18).toNumber());
+
+		console.log("advance one week [no rewards]");
+		await time.increase(86400 * 7);
+		await time.advanceBlock();
+
+		console.log("accounts[1] earned():", new BigNumber(await stakingInstance_FXS_WETH.earned(COLLATERAL_FRAX_AND_FXS_OWNER)).div(BIG18).toNumber());
+		console.log("FXS-ETH rewardPerToken():", new BigNumber(await stakingInstance_FXS_WETH.rewardPerToken()).div(BIG18).toNumber());
+		console.log("FXS-ETH getRewardForDuration():", new BigNumber(await stakingInstance_FXS_WETH.getRewardForDuration()).div(BIG18).toNumber());
+		console.log("FXS-ETH lastTimeRewardApplicable():", new BigNumber (await stakingInstance_FXS_WETH.lastTimeRewardApplicable()).toNumber());
+		console.log("FXS-ETH totalBoostedSupply():", new BigNumber(await stakingInstance_FXS_WETH.totalBoostedSupply()).div(BIG18).toNumber());
+
+		console.log("initializeDefault() and send FXS");
+		await stakingInstance_FXS_WETH.initializeDefault({ from: STAKING_OWNER });
+		await stakingInstance_FXS_WETH.setRewardRate(new BigNumber("761e14"), { from: STAKING_OWNER });
+		await fxsInstance.transfer(stakingInstance_FXS_WETH.address, new BigNumber("1000000e18"), { from: COLLATERAL_FRAX_AND_FXS_OWNER });
+
+		console.log("accounts[1] earned():", new BigNumber(await stakingInstance_FXS_WETH.earned(COLLATERAL_FRAX_AND_FXS_OWNER)).div(BIG18).toNumber());
+		console.log("FXS-ETH rewardPerToken():", new BigNumber(await stakingInstance_FXS_WETH.rewardPerToken()).div(BIG18).toNumber());
+		console.log("FXS-ETH getRewardForDuration():", new BigNumber(await stakingInstance_FXS_WETH.getRewardForDuration()).div(BIG18).toNumber());
+		console.log("FXS-ETH lastTimeRewardApplicable():", new BigNumber (await stakingInstance_FXS_WETH.lastTimeRewardApplicable()).toNumber());
+		console.log("FXS-ETH totalBoostedSupply():", new BigNumber(await stakingInstance_FXS_WETH.totalBoostedSupply()).div(BIG18).toNumber());
+
+		console.log("advance one week [rewards started]");
+		await time.increase(86400 * 7);
+		await time.advanceBlock();
+
+		console.log("accounts[1] earned():", new BigNumber(await stakingInstance_FXS_WETH.earned(COLLATERAL_FRAX_AND_FXS_OWNER)).div(BIG18).toNumber());
+		console.log("FXS-ETH rewardPerToken():", new BigNumber(await stakingInstance_FXS_WETH.rewardPerToken()).div(BIG18).toNumber());
+		console.log("FXS-ETH getRewardForDuration():", new BigNumber(await stakingInstance_FXS_WETH.getRewardForDuration()).div(BIG18).toNumber());
+		console.log("FXS-ETH lastTimeRewardApplicable():", new BigNumber (await stakingInstance_FXS_WETH.lastTimeRewardApplicable()).toNumber());
+		console.log("FXS-ETH totalBoostedSupply():", new BigNumber(await stakingInstance_FXS_WETH.totalBoostedSupply()).div(BIG18).toNumber());
+
+
+	});
+/*
 	it("Deploys a vesting contract and then executes a governance proposal to revoke it", async () => {
 		console.log("======== Setup vestingInstance ========");
 		await vestingInstance.setTimelockAddress(timelockInstance.address, { from: accounts[0] });
@@ -1445,6 +1490,7 @@ contract('FRAX', async (accounts) => {
 		await col_instance_USDC.approve(pool_instance_USDC.address, USDC_amount, { from: COLLATERAL_FRAX_AND_FXS_OWNER });
 
 		// Redeem some FRAX
+		console.log("accounts[1] balance:", new BigNumber(await col_instance_USDC.balanceOf(COLLATERAL_FRAX_AND_FXS_OWNER)).div(BIG18).toNumber());
 		await pool_instance_USDC.recollateralizeFRAX(USDC_amount, new BigNumber("10e18"), { from: COLLATERAL_FRAX_AND_FXS_OWNER });
 		console.log("accounts[1] recollateralizeFRAX() with 10,000 USDC");
 
@@ -2174,5 +2220,5 @@ contract('FRAX', async (accounts) => {
 		console.log("staking contract FXS balance:", new BigNumber(await fxsInstance.balanceOf(stakingInstance_FRAX_WETH.address)).div(BIG18).toNumber());
 		console.log("crBoostMultiplier():", new BigNumber(await stakingInstance_FRAX_WETH.crBoostMultiplier()).toNumber());
 	});
-
+*/
 });
