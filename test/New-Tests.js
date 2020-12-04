@@ -487,7 +487,7 @@ contract('FRAX', async (accounts) => {
 
 
 	});
-/*
+
 	it("Deploys a vesting contract and then executes a governance proposal to revoke it", async () => {
 		console.log("======== Setup vestingInstance ========");
 		await vestingInstance.setTimelockAddress(timelockInstance.address, { from: accounts[0] });
@@ -2220,5 +2220,5 @@ contract('FRAX', async (accounts) => {
 		console.log("staking contract FXS balance:", new BigNumber(await fxsInstance.balanceOf(stakingInstance_FRAX_WETH.address)).div(BIG18).toNumber());
 		console.log("crBoostMultiplier():", new BigNumber(await stakingInstance_FRAX_WETH.crBoostMultiplier()).toNumber());
 	});
-*/
+
 });
